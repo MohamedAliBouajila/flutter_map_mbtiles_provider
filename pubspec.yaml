@@ -1,6 +1,6 @@
 name: flutter_map_mbtiles_provider
 description: MBTilesProvider was originally implemented as part of flutter_map package
-version: 0.1.0
+version: 0.2
 repository: https://github.com/DonWasyl/flutter_map_mbtiles_provider
 
 environment:
