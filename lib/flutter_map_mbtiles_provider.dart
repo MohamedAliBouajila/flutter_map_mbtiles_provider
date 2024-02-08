@@ -1,5 +1,3 @@
-library flutter_map_mbtiles_provider;
-
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -8,25 +6,26 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
-// import 'package:flutter_map/src/layer/tile_provider/tile_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 class MBTilesImageProvider extends TileProvider {
-  final String asset;
-  final File mbtilesFile;
+  final String? asset;
+  final File? mbtilesFile;
 
-  Future<Database> database;
-  Database _loadedDb;
+  late final Future<Database> database;
+  late Database? _loadedDb;
   bool isDisposed = false;
 
   MBTilesImageProvider._({this.asset, this.mbtilesFile}) {
     database = _loadMBTilesDatabase();
   }
 
-  factory MBTilesImageProvider.fromAsset(String asset) => MBTilesImageProvider._(asset: asset);
+  factory MBTilesImageProvider.fromAsset(String asset) =>
+      MBTilesImageProvider._(asset: asset);
 
-  factory MBTilesImageProvider.fromFile(File mbtilesFile) => MBTilesImageProvider._(mbtilesFile: mbtilesFile);
+  factory MBTilesImageProvider.fromFile(File mbtilesFile) =>
+      MBTilesImageProvider._(mbtilesFile: mbtilesFile);
 
   Future<Database> _loadMBTilesDatabase() async {
     if (_loadedDb == null) {
@@ -35,19 +34,19 @@ class MBTilesImageProvider extends TileProvider {
       _loadedDb = await openDatabase(file.path);
 
       if (isDisposed) {
-        await _loadedDb.close();
+        await _loadedDb?.close();
         _loadedDb = null;
         throw Exception('Tileprovider is already disposed');
       }
     }
 
-    return _loadedDb;
+    return _loadedDb!;
   }
 
   @override
   void dispose() {
     if (_loadedDb != null) {
-      _loadedDb.close();
+      _loadedDb?.close();
       _loadedDb = null;
     }
     isDisposed = true;
@@ -55,11 +54,13 @@ class MBTilesImageProvider extends TileProvider {
 
   Future<File> copyFileFromAssets() async {
     var tempDir = await getTemporaryDirectory();
-    var filename = asset.split('/').last;
+    var filename = asset!.split('/').last;
     var file = File('${tempDir.path}/$filename');
 
-    var data = await rootBundle.load(asset);
-    file.writeAsBytesSync(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes), flush: true);
+    var data = await rootBundle.load(asset!);
+    file.writeAsBytesSync(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        flush: true);
     return file;
   }
 
@@ -72,7 +73,7 @@ class MBTilesImageProvider extends TileProvider {
     return MBTileImage(
       database,
       Coords<int>(x, y)..z = z,
-      mbtilesFile?.path ?? asset,
+      mbtilesFile?.path ?? asset!,
     );
   }
 }
@@ -108,7 +109,7 @@ class MBTileImage extends ImageProvider<MBTileImage> {
     if (bytes == null) {
       return Future<Codec>.error('Failed to load tile for coords: $coords');
     }
-    return await PaintingBinding.instance.instantiateImageCodec(bytes);
+    return await instantiateImageCodec(bytes);
   }
 
   @override
@@ -121,6 +122,8 @@ class MBTileImage extends ImageProvider<MBTileImage> {
 
   @override
   bool operator ==(other) {
-    return other is MBTileImage && coords == other.coords && filePath == other.filePath;
+    return other is MBTileImage &&
+        coords == other.coords &&
+        filePath == other.filePath;
   }
 }
